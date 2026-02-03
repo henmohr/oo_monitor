@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OOMonitor\Settings;
+namespace OCA\OOMonitor\Settings;
 
-use OOMonitor\Service\OnlyOfficeMonitor;
+use OCA\OOMonitor\Service\OnlyOfficeMonitor;
 use OCP\Settings\ISettings;
 use OCP\AppFramework\Http\TemplateResponse;
 

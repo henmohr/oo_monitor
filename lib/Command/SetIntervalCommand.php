@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OOMonitor\Command;
+namespace OCA\OOMonitor\Command;
 
-use OOMonitor\Service\OnlyOfficeMonitor;
+use OCA\OOMonitor\Service\OnlyOfficeMonitor;
 use OCP\IConfig;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;

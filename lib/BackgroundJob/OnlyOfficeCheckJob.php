@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace OOMonitor\BackgroundJob;
+namespace OCA\OOMonitor\BackgroundJob;
 
-use OOMonitor\Service\OnlyOfficeMonitor;
+use OCA\OOMonitor\Service\OnlyOfficeMonitor;
 use OCP\IConfig;
 use OCP\BackgroundJob\TimedJob;
-use OCP\ILogger;
+use Psr\Log\LoggerInterface;
 
 class OnlyOfficeCheckJob extends TimedJob {
     private OnlyOfficeMonitor $monitor;
-    private ILogger $logger;
+    private LoggerInterface $logger;
 
-    public function __construct(OnlyOfficeMonitor $monitor, ILogger $logger, IConfig $config) {
+    public function __construct(OnlyOfficeMonitor $monitor, LoggerInterface $logger, IConfig $config) {
         parent::__construct();
         $this->monitor = $monitor;
         $this->logger = $logger;

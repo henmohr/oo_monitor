@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OOMonitor\Service;
+namespace OCA\OOMonitor\Service;
 
 use OCP\Files\IAppData;
 use OCP\IConfig;
-use OCP\ILogger;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Process\Process;
 
 class OnlyOfficeMonitor {
@@ -58,9 +58,9 @@ class OnlyOfficeMonitor {
 
     private IConfig $config;
     private IAppData $appData;
-    private ILogger $logger;
+    private LoggerInterface $logger;
 
-    public function __construct(IConfig $config, IAppData $appData, ILogger $logger) {
+    public function __construct(IConfig $config, IAppData $appData, LoggerInterface $logger) {
         $this->config = $config;
         $this->appData = $appData;
         $this->logger = $logger;

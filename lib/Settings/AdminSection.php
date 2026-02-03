@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OOMonitor\Settings;
+namespace OCA\OOMonitor\Settings;
 
 use OCP\IL10N;
 use OCP\Settings\ISection;
