@@ -15,6 +15,8 @@ class OnlyOfficeMonitor {
     private const BACKUP_FOLDER = 'backups';
     private const OUT_FILE = 'out-oo.txt';
     private const ONLYOFFICE_APP_ID = 'onlyoffice';
+    private const CHECK_INTERVAL_MINUTES_KEY = 'check_interval_minutes';
+    private const CHECK_INTERVAL_SECONDS_LEGACY_KEY = 'check_interval';
     private const CONFIG_KEYS = [
         'demo',
         'DocumentServerUrl',
@@ -77,6 +79,7 @@ class OnlyOfficeMonitor {
             'appEnabled' => $this->appManager->isEnabledForUser('oo_monitor'),
             'outFilePath' => $outFile ?? '(appdata)',
             'outFileStatus' => $outStatus,
+            'appdataBackupPath' => $outFile === null ? $this->getAppDataBackupPath() : '',
             'intervalMinutes' => $this->getIntervalMinutes(),
             'lastCheckAt' => $this->config->getAppValue('oo_monitor', 'last_check_at', ''),
             'lastCheckOk' => $this->config->getAppValue('oo_monitor', 'last_check_ok', ''),
@@ -98,12 +101,11 @@ class OnlyOfficeMonitor {
 
     public function updateIntervalMinutes(int $intervalMinutes): void {
         $intervalMinutes = max(1, $intervalMinutes);
-        $intervalSeconds = $intervalMinutes * 60;
-        $this->config->setAppValue('oo_monitor', 'check_interval', (string)$intervalSeconds);
+        $this->config->setAppValue('oo_monitor', self::CHECK_INTERVAL_MINUTES_KEY, (string)$intervalMinutes);
 
         $this->logger->info('Interval updated', [
             'app' => 'oo_monitor',
-            'interval_seconds' => $intervalSeconds,
+            'interval_minutes' => $intervalMinutes,
         ]);
     }
 
@@ -214,20 +216,30 @@ class OnlyOfficeMonitor {
     }
 
     public function backupNow(): array {
-        $data = $this->backupConfig();
-        $outPath = $this->getOutFilePath();
-        if ($outPath !== null) {
-            $this->writeOutFile($outPath, $data);
-        } else {
-            $this->writeOutFileToAppData($data);
-        }
+        try {
+            $data = $this->backupConfig();
+            $outPath = $this->getOutFilePath();
+            if ($outPath !== null) {
+                $this->writeOutFile($outPath, $data);
+            } else {
+                $this->writeOutFileToAppData($data);
+            }
 
-        return [
-            'ok' => true,
-            'message' => 'Backup saved',
-            'output' => '',
-            'timestamp' => (new \DateTimeImmutable())->format('c'),
-        ];
+            return [
+                'ok' => true,
+                'message' => 'Backup saved',
+                'output' => '',
+                'timestamp' => (new \DateTimeImmutable())->format('c'),
+            ];
+        } catch (\Throwable $e) {
+            $this->logger->error('Backup failed', ['app' => 'oo_monitor', 'exception' => $e]);
+            return [
+                'ok' => false,
+                'message' => 'Backup failed: ' . $e->getMessage(),
+                'output' => '',
+                'timestamp' => (new \DateTimeImmutable())->format('c'),
+            ];
+        }
     }
 
     public function testOutFileAccess(): array {
@@ -496,12 +508,33 @@ class OnlyOfficeMonitor {
         ];
     }
 
-    private function getIntervalMinutes(): int {
-        $intervalSeconds = (int)$this->config->getAppValue('oo_monitor', 'check_interval', '900');
-        if ($intervalSeconds <= 0) {
-            $intervalSeconds = 900;
+    public function getIntervalMinutes(): int {
+        $minutes = (int)$this->config->getAppValue('oo_monitor', self::CHECK_INTERVAL_MINUTES_KEY, '');
+        if ($minutes > 0) {
+            return $minutes;
         }
-        return (int)max(1, round($intervalSeconds / 60));
+
+        $legacySeconds = (int)$this->config->getAppValue('oo_monitor', self::CHECK_INTERVAL_SECONDS_LEGACY_KEY, '900');
+        if ($legacySeconds <= 0) {
+            $legacySeconds = 900;
+        }
+        $minutes = (int)max(1, round($legacySeconds / 60));
+        // Migrate legacy value (seconds) to minutes
+        $this->config->setAppValue('oo_monitor', self::CHECK_INTERVAL_MINUTES_KEY, (string)$minutes);
+        return $minutes;
+    }
+
+    public function getIntervalSeconds(): int {
+        return $this->getIntervalMinutes() * 60;
+    }
+
+    private function getAppDataBackupPath(): string {
+        $dataDir = (string)$this->config->getSystemValue('datadirectory', '');
+        $instanceId = (string)$this->config->getSystemValue('instanceid', '');
+        if ($dataDir === '' || $instanceId === '') {
+            return '';
+        }
+        return rtrim($dataDir, '/') . '/appdata_' . $instanceId . '/oo_monitor/backups';
     }
 
     private function storeLastCheck(bool $ok): void {

@@ -33,8 +33,7 @@ class SetIntervalCommand extends Command {
         $minutesArg = $input->getArgument('minutes');
 
         if ($minutesArg === null) {
-            $seconds = (int)$this->config->getAppValue('oo_monitor', 'check_interval', '900');
-            $minutes = max(1, (int)round($seconds / 60));
+            $minutes = $this->monitor->getIntervalMinutes();
             $output->writeln('Current interval: ' . $minutes . ' minutes');
             return Command::SUCCESS;
         }

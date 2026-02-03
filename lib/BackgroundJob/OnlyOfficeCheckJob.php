@@ -18,9 +18,7 @@ class OnlyOfficeCheckJob extends TimedJob {
         parent::__construct($time);
         $this->monitor = $monitor;
         $this->logger = $logger;
-        $interval = (int)$config->getAppValue('oo_monitor', 'check_interval', '900');
-        $interval = $interval > 0 ? $interval : 900;
-        $this->setInterval($interval);
+        $this->setInterval($monitor->getIntervalSeconds());
     }
 
     protected function run($argument): void {

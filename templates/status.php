@@ -18,6 +18,7 @@ $lastFileTestAt = (string)($meta['lastFileTestAt'] ?? '');
 $lastFileTestOk = (string)($meta['lastFileTestOk'] ?? '');
 $lastFileTestMessage = (string)($meta['lastFileTestMessage'] ?? '');
 $appEnabled = (bool)($meta['appEnabled'] ?? true);
+$appdataBackupPath = (string)($meta['appdataBackupPath'] ?? '');
 $outStatusMessage = (string)($outFileStatus['message'] ?? '');
 $outStatusWarn = $outStatusMessage === 'Permission issue';
 ?>
@@ -38,6 +39,9 @@ $outStatusWarn = $outStatusMessage === 'Permission issue';
     <div><strong>Última reconexão:</strong> <span id="oo-last-reconnect"><?php p($lastReconnectAt); ?></span> <span id="oo-last-reconnect-ok"><?php p($lastReconnectOk === '' ? '' : ($lastReconnectOk === '1' ? '(OK)' : '(FAIL)')); ?></span></div>
     <div><strong>out-oo.txt:</strong> <span id="oo-out-path"><?php p($outFilePath); ?></span></div>
     <div><strong>Permissões:</strong> <span id="oo-out-status"><?php p((string)($outFileStatus['message'] ?? '')); ?></span></div>
+    <?php if ($appdataBackupPath !== ''): ?>
+      <div><strong>Appdata:</strong> <span id="oo-appdata-path"><?php p($appdataBackupPath); ?></span></div>
+    <?php endif; ?>
     <div class="oo-monitor__alert" id="oo-out-alert" style="<?php p($outStatusWarn ? '' : 'display:none;'); ?>">
       Atenção: verifique permissões/leitura/escrita do out-oo.txt.
     </div>
